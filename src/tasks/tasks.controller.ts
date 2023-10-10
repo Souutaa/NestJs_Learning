@@ -1,7 +1,8 @@
 import { CreateTaskDto } from './dto/create-task.dto';
-import { Task } from './task.model';
+import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+import { Task, TaskStatus } from './task.model';
 import { TasksService } from './tasks.service';
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from '@nestjs/common';
 
 @Controller('tasks')
 export class TasksController {
@@ -9,9 +10,14 @@ export class TasksController {
 
   // In controller we also need to specify task array as return type
   // because we will return an array of task as response to user
+  
   @Get()
-  getAllTasks(): Task[] {
-    return this.tasksService.getAllTasks();
+  getTasks(@Query() filterDto: GetTasksFilterDto): Task[] {
+    if (Object.keys(filterDto).length) {
+      return this.tasksService.getTasksWithFilter(filterDto);
+    } else {
+      return this.tasksService.getAllTasks();
+    }
   }
 
   @Get('/:id')
@@ -27,5 +33,13 @@ export class TasksController {
   @Delete('/:id')
   deleteTask(@Param('id') id: string): void {
     return this.tasksService.deleteTask(id);
+  }
+
+  @Patch('/:id/status')
+  updateTaskStatus(
+    @Param('id') id: string,
+    @Body('status') status: TaskStatus
+  ): Task {
+    return this.tasksService.updateTaskStatus(id, status);
   }
 }
