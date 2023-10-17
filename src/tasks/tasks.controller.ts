@@ -2,6 +2,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { TaskStatus } from './task-status-enum';
+import { Task } from './task.entity';
 import { TasksService } from './tasks.service';
 import {
   Controller,
@@ -30,20 +31,20 @@ export class TasksController {
   //   }
   // }
 
-  // @Get('/:id')
-  // getTaskById(@Param('id') id: string): Task {
-  //   return this.tasksService.getTaskById(id);
-  // }
+  @Get('/:id')
+  getTaskById(@Param('id') id: string): Promise<Task> {
+    return this.tasksService.getTaskById(id);
+  }
 
-  // @Post()
-  // createTask(@Body() CreateTaskDto: CreateTaskDto): Task {
-  //   return this.tasksService.createTasks(CreateTaskDto);
-  // }
+  @Post()
+  createTask(@Body() CreateTaskDto: CreateTaskDto): Promise<Task> {
+    return this.tasksService.createTasks(CreateTaskDto);
+  }
 
-  // @Delete('/:id')
-  // deleteTask(@Param('id') id: string): void {
-  //   return this.tasksService.deleteTask(id);
-  // }
+  @Delete('/:id')
+  deleteTask(@Param('id') id: string): Promise<void> {
+    return this.tasksService.deleteTask(id);
+  }
 
   // @Patch('/:id/status')
   // updateTaskStatus(
