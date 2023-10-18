@@ -4,28 +4,31 @@ import { TaskStatus } from './task-status-enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TasksRespository } from './dto/task.respository';
 import { Task } from './task.entity';
+import { Repository } from 'typeorm';
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(TasksRespository)
-    private tasksRespository: TasksRespository,
+    @InjectRepository(Task)
+    private tasksRespository: Repository<Task>,
   ) {}
 
   // An array of task
   //Vì sẽ lưu trữ các task vào database nên xoá khai báo array task
   //private tasks: Task[] = []; --> delete
 
-  // Specify task array as return type
+  // Specify task array as return typez
 
   // getAllTasks(): Task[] {
   //   return this.tasks;
   // }
 
   async getTaskById(id: string): Promise<Task> {
-    const found = await this.tasksRespository.findOneById(id);
-
+    const found = await this.tasksRespository.findOne({
+      where: {
+        id: id,
+      },
+    });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
@@ -54,11 +57,14 @@ export class TasksService {
     }
   }
 
-  // updateTaskStatus(id: string, status: TaskStatus) {
-  //   const task = this.getTaskById(id);
-  //   task.status = status;
-  //   return task;
-  // }
+  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
+    const task = await this.getTaskById(id);
+
+    task.status = status;
+    await this.tasksRespository.save(task);
+
+    return task;
+  }
 
   // getTasksWithFilter(filterDto: GetTasksFilterDto): Task[] {
   //   const { status, search } = filterDto;
