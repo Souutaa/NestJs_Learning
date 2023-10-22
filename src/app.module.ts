@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       synchronize: true,
       // giúp cho các bảng trong database với schema luôn đồng bộ với nhau. Hoặc cũng có thể sử dụng migration
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
