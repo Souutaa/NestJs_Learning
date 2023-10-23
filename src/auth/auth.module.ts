@@ -16,7 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
         expiresIn: 3600,
       },
     }),
-    TypeOrmModule.forFeature([User])
+    TypeOrmModule.forFeature([User]),
   ],
   providers: [AuthService],
   controllers: [AuthController],
