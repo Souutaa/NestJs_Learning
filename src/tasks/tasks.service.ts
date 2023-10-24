@@ -13,15 +13,22 @@ export class TasksService {
     private tasksRespository: Repository<Task>,
   ) {}
 
-  async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    const taskResult = await this.tasksRespository.find();
-    if (filterDto.status) {
-      taskResult.filter((task) => task.status !== filterDto.status);
+  async getTasks({ status, search }: GetTasksFilterDto): Promise<Task[]> {
+    const query = this.tasksRespository.createQueryBuilder('task');
+
+    if (status) {
+      query.andWhere('task.status = :status', { status });
     }
-    if (filterDto.search) {
-      taskResult.filter((task) => task.title !== filterDto.status);
+
+    if (search) {
+      query.andWhere(
+        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
+        { search: `%${search}%` },
+      );
     }
-    return taskResult;
+
+    const tasks = await query.getMany();
+    return tasks;
   }
 
   async getTaskById(id: string): Promise<Task> {
