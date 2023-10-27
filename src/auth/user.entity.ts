@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Task } from 'src/tasks/task.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -10,4 +11,13 @@ export class User {
 
   @Column()
   password: string;
+
+  // định nghĩa OneToMany relation cho thuộc tính tasks bên trong user.entity
+  // sử dụng decorator để cung cấp loại relation
+  @OneToMany((_type) => Task, (task) => task.user, { eager: true })
+  // arrow function ( hàm mũi tên ) là 2 tham số cho relation OneToMany
+  // (_type)=> Task là tham số của thuộc tính task, đó là loại của thực thể task
+  // task => task.user là tham số giúp chúng ta có thể truy cập đến thực thể task khi đang ở user
+  // thuộc tính object eager
+  tasks: Task[];
 }

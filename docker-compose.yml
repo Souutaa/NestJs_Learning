@@ -17,6 +17,7 @@ services:                                 #chính là dịch vụ mà docker cun
       - 5432                              #nghe trên các cổng mạng được chỉ định khi chạy
       
   pgadmin:
+    user: root
     image: dpage/pgadmin4:latest
     restart: always
     depends_on:                         #Phải service có tên là db phải chạy trước thì sau đó service này mới chạy

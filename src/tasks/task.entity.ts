@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/auth/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskStatus } from './task-status-enum';
 
 @Entity()
@@ -16,4 +17,13 @@ export class Task {
 
   @Column()
   status: TaskStatus;
+
+  // định nghĩa ManyToOne relation cho thuộc tính user bên trong task.entity
+  // sử dụng decorator để cung cấp loại relation
+  @ManyToOne((_type) => User, (user) => user.tasks, { eager: false })
+  // arrow function ( hàm mũi tên ) là 2 tham số cho relation ManyToOne
+  // (_type)=> User là tham số của thuộc tính user, đó là loại của thực thể user
+  // (user) => user.tasks là tham số giúp chúng ta có thể truy cập đến thực thể user khi đang ở task
+  // thuộc tính object eager
+  user: User;
 }
