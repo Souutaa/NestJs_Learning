@@ -3,7 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './auth/JwtToken/auth.module';
+import { GoogleModule } from './auth/google/google.module';
+import { GoogleService } from './auth/google/google.service';
+import { GoogleStrategy } from './auth/google/google.staregy';
+import { GoogleController } from './auth/google/google.controller';
 
 @Module({
   imports: [
@@ -22,6 +26,7 @@ import { AuthModule } from './auth/auth.module';
       // giúp cho các bảng trong database với schema luôn đồng bộ với nhau. Hoặc cũng có thể sử dụng migration
     }),
     AuthModule,
+    GoogleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
