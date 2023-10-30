@@ -64,8 +64,8 @@ export class TasksService {
     return task;
   }
 
-  async deleteTask(id: string): Promise<DeleteResult> {
-    const result = await this.tasksRespository.delete(id);
+  async deleteTask(id: string, user: User): Promise<DeleteResult> {
+    const result = await this.tasksRespository.delete({ id, user });
 
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -74,12 +74,14 @@ export class TasksService {
     return result;
   }
 
-  // async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-  //   const task = await this.getTaskById(id);
-
-  //   task.status = status;
-  //   await this.tasksRespository.save(task);
-
-  //   return task;
-  // }
+  async updateTaskStatus(
+    id: string,
+    status: TaskStatus,
+    user: User,
+  ): Promise<Task> {
+    const task = await this.getTaskById(id, user);
+    task.status = status;
+    await this.tasksRespository.save(task);
+    return task;
+  }
 }
