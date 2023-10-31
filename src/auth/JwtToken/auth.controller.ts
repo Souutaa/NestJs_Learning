@@ -27,7 +27,15 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req) {
     // const user = this.googleService.googleLogin(req);
-    const jwt = this.authService.loginGoogle({ username: req.user.email });
+    //const jwt = this.authService.loginGoogle({ username: req.user.email });
+    const jwt = this.authService.signUpGoogle({
+      username: req.user.email,
+      typeAuth: 1,
+    });
+    // const jwt = this.authService.loginGoogle({
+    //   username: req.user.email,
+    //   typeAuth: 1,
+    // });
     return jwt;
   }
 }

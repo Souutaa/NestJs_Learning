@@ -1,5 +1,7 @@
 import { Task } from 'src/tasks/task.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { TypeAuth } from './enum.TypeAuth';
+import { type } from 'os';
 
 @Entity()
 export class User {
@@ -20,4 +22,7 @@ export class User {
   // task => task.user là tham số giúp chúng ta có thể truy cập đến thực thể task khi đang ở user
   // thuộc tính object eager
   tasks: Task[];
+
+  @Column()
+  typeAuth: TypeAuth;
 }

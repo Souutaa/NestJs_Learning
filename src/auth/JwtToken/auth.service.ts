@@ -4,13 +4,15 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { AuthCredentialsDto } from '../dto/auth-credentials.dto';
-import { User } from '../user.entity';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { AuthCredentialsDto } from '../dto/auth-credentials.dto';
 import { JwtPayload } from '../jwt-payload.interface';
+import { User } from '../user.entity';
+import { TypeAuth } from './../enum.TypeAuth';
+import { AuthUserDto } from '../dto/auth-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +43,6 @@ export class AuthService {
     });
 
     // Sử dụng phương thức save để lưu thực thể vào cơ sở dữ liệu
-
     try {
       await this.usersRepository.save(user);
     } catch (error) {
@@ -67,9 +68,45 @@ export class AuthService {
     }
   }
 
-  async loginGoogle(user: any): Promise<any> {
-    const payload: JwtPayload = { username: user.username };
-    const accessToken: string = await this.jwtService.sign(payload);
-    return { accessToken };
+  //Google
+  async signUpGoogle(_user: AuthUserDto): Promise<any> {
+    if (_user) {
+      const { username, typeAuth } = _user;
+      // Sử dụng phương thức create của repository để tạo một thực thể User
+      // thay vì truyền vào mật khẩu thô, chúng ta sẽ truyền vào mật khẩu được hash
+      const user = this.usersRepository.create({
+        username,
+        typeAuth: TypeAuth.GOOGLE,
+      });
+      try {
+        await this.usersRepository.save(user);
+      } catch (error) {
+        if (error.code === '23505')
+          throw new ConflictException('Username already exists');
+        else throw new InternalServerErrorException();
+      }
+    } else {
+      return {
+        access_token: '',
+      };
+    }
+  }
+
+  async loginGoogle(user: AuthUserDto): Promise<any> {
+    // const payload: JwtPayload = { username: user.username };
+    // const accessToken: string = await this.jwtService.sign(payload);
+    // return { accessToken };
+    if (user) {
+      return {
+        access_token: this.jwtService.sign({
+          username: user.username,
+          type: user.typeAuth,
+        }),
+      };
+    } else {
+      return {
+        access_token: '',
+      };
+    }
   }
 }
