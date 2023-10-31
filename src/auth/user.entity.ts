@@ -23,6 +23,10 @@ export class User {
   // thuộc tính object eager
   tasks: Task[];
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: TypeAuth,
+    default: TypeAuth.DATABASE,
+  })
   typeAuth: TypeAuth;
 }
