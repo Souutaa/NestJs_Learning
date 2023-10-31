@@ -66,4 +66,10 @@ export class AuthService {
       throw new UnauthorizedException('Please check your login credentials');
     }
   }
+
+  async loginGoogle(user: any): Promise<any> {
+    const payload: JwtPayload = { username: user.username };
+    const accessToken: string = await this.jwtService.sign(payload);
+    return { accessToken };
+  }
 }

@@ -6,12 +6,11 @@ import { User } from '../user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
-// import { UsersRepository } from './users.repository';
-import { GoogleModule } from '../google/google.module';
+import { GoogleStrategy } from './google.staregy';
 
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule,
     JwtModule.register({
       secret: 'topScret51',
       signOptions: {
@@ -20,7 +19,7 @@ import { GoogleModule } from '../google/google.module';
     }),
     TypeOrmModule.forFeature([User]),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
   controllers: [AuthController],
   exports: [JwtStrategy, PassportModule],
 })
