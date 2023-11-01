@@ -187,8 +187,8 @@ export class AuthService {
     //   password: hashedPassword,
     // });
     userFind.password = hashedPassword;
+    userFind.otp = null;
     await this.usersRepository.save(userFind);
-    this.usersRepository.delete(otp);
     return {
       messsage: 'Password was updated by Google Service',
     };
