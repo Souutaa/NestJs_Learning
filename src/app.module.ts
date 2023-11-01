@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/JwtToken/auth.module';
 import { TasksModule } from './tasks/tasks.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -22,6 +23,20 @@ import { TasksModule } from './tasks/tasks.module';
       // giúp cho các bảng trong database với schema luôn đồng bộ với nhau. Hoặc cũng có thể sử dụng migration
     }),
     AuthModule,
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'trinhq011@gmail.com',
+          pass: 'emgm cmou mnlg rbjn',
+        },
+      },
+      defaults: {
+        from: 'trinhq011@gmail.com',
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

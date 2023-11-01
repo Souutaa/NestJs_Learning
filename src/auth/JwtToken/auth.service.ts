@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   ConflictException,
   Injectable,
@@ -9,10 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { AuthCredentialsDto } from '../dto/auth-credentials.dto';
+import { AuthUserDto } from '../dto/auth-user.dto';
 import { JwtPayload } from '../jwt-payload.interface';
 import { User } from '../user.entity';
-import { TypeAuth } from './../enum.TypeAuth';
-import { AuthUserDto } from '../dto/auth-user.dto';
+import { OTPgene } from '../dto/Otpgene.dto';
+import { otpgenerate } from '../otpGenerator';
+import { updatePasswordDTO } from '../dto/update-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
@@ -71,14 +75,21 @@ export class AuthService {
   //Google
   async signUpGoogle(_user: AuthUserDto): Promise<any> {
     if (_user) {
-      const { username, typeAuth } = _user;
+      const { username, typeAuth, password } = _user;
       // Sử dụng phương thức create của repository để tạo một thực thể User
       // thay vì truyền vào mật khẩu thô, chúng ta sẽ truyền vào mật khẩu được hash
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+
       const user = this.usersRepository.create({
         username,
-        typeAuth: TypeAuth.GOOGLE,
+        typeAuth,
+        password: hashedPassword,
       });
       await this.usersRepository.save(user);
+      return {
+        messsage: 'User created by Google Service',
+      };
       // try {
       // } catch (error) {
       //   if (error.code === '23505')
@@ -92,21 +103,100 @@ export class AuthService {
     }
   }
 
-  async loginGoogle(user: AuthUserDto): Promise<any> {
-    // const payload: JwtPayload = { username: user.username };
-    // const accessToken: string = await this.jwtService.sign(payload);
-    // return { accessToken };
-    if (user) {
-      return {
-        access_token: this.jwtService.sign({
-          username: user.username,
-          type: user.typeAuth,
-        }),
-      };
+  async loginGoogle(_user: AuthUserDto): Promise<{ accessToken: string }> {
+    const { username, password } = _user;
+    const user = await this.usersRepository.findOne({ where: { username } });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const payload: JwtPayload = { username };
+      const accessToken: string = await this.jwtService.sign(payload);
+      return { accessToken };
     } else {
-      return {
-        access_token: '',
-      };
+      throw new UnauthorizedException('Please check your login credentials');
     }
+  }
+
+  // async changePassword(_user: changePassword): Promise<any> {
+  //   const { username } = _user;
+  //   const findUser = await this.usersRepository.findOne({
+  //     where: { username },
+  //   });
+  //   if (!findUser) {
+  //     throw Error(`Cant find user: ${username}`);
+  //   }
+  //   const otpDetail = {
+  //     username,
+  //     subject: 'Change Password',
+  //     message: 'Change your password with the code below',
+  //     duration: 1,
+  //     otpgenera: otp,
+  //   };
+
+  //   const createdOTP = await this.usersRepository.create(otpDetail);
+  //   console.log(createdOTP);
+  //   return createdOTP;
+  // }
+
+  //async sendOTP(email: string) {
+  async sendOTP(sendgmail: OTPgene) {
+    const { username } = sendgmail;
+    const userFind = await this.usersRepository.findOne({
+      where: { username },
+    });
+    if (!userFind) {
+      throw Error('User was not created at a previous time');
+    }
+    const otp = otpgenerate();
+    await this.mailerService.sendMail({
+      to: username,
+      subject: 'OTP for password reset',
+      text: `Your OTP for password reset is ${otp}`,
+    });
+    // const user = this.usersRepository.create({
+    //   username,
+    //   otp,
+    // });
+    userFind.otp = otp;
+    await this.usersRepository.save(userFind);
+    return {
+      messsage: `OTP was sent to user ${userFind.username}`,
+    };
+  }
+
+  async updateUserPassword(
+    otprequest: string,
+    _user: updatePasswordDTO,
+  ): Promise<any> {
+    const { username, otp, password } = _user;
+    const userFind = await this.usersRepository.findOne({
+      where: { username },
+    });
+    if (!userFind) {
+      throw Error('Dont exist user');
+    }
+    if (otprequest.localeCompare(otp) === -1) {
+      throw Error('OTP fail this OTP');
+    }
+
+    // Sử dụng phương thức create của repository để tạo một thực thể User
+    // thay vì truyền vào mật khẩu thô, chúng ta sẽ truyền vào mật khẩu được hash
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // const user = this.usersRepository.create({
+    //   password: hashedPassword,
+    // });
+    userFind.password = hashedPassword;
+    await this.usersRepository.save(userFind);
+    this.usersRepository.delete(otp);
+    return {
+      messsage: 'Password was updated by Google Service',
+    };
+    // try {
+    // } catch (error) {
+    //   if (error.code === '23505')
+    //     throw new ConflictException('Username already exists');
+    //   else throw new InternalServerErrorException();
+    // }
   }
 }

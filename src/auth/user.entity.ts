@@ -8,10 +8,10 @@ export class User {
   @PrimaryGeneratedColumn('uuid') //tự động tạo một unique ID
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   username: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   // định nghĩa OneToMany relation cho thuộc tính tasks bên trong user.entity
@@ -29,4 +29,7 @@ export class User {
     default: TypeAuth.DATABASE,
   })
   typeAuth: TypeAuth;
+
+  @Column({ nullable: true })
+  otp: string;
 }
