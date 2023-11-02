@@ -74,13 +74,17 @@ export class AuthService {
 
   //Google
   async signUpGoogle(_user: AuthUserDto): Promise<any> {
-    if (_user) {
-      const { username, typeAuth, password } = _user;
-      // Sử dụng phương thức create của repository để tạo một thực thể User
+    const { username, typeAuth, password } = _user;
+    const userFind = await this.usersRepository.findOne({
+      where: { username },
+    });
+
+    if (!userFind) {
       // thay vì truyền vào mật khẩu thô, chúng ta sẽ truyền vào mật khẩu được hash
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(password, salt);
 
+      // Sử dụng phương thức create của repository để tạo một thực thể User
       const user = this.usersRepository.create({
         username,
         typeAuth,
@@ -90,72 +94,44 @@ export class AuthService {
       return {
         messsage: 'User created by Google Service',
       };
-      // try {
-      // } catch (error) {
-      //   if (error.code === '23505')
-      //     throw new ConflictException('Username already exists');
-      //   else throw new InternalServerErrorException();
-      // }
     } else {
       return {
+        message: 'User existed in a previous time ',
         access_token: '',
       };
     }
   }
 
-  async loginGoogle(_user: AuthUserDto): Promise<{ accessToken: string }> {
-    const { username, password } = _user;
-    const user = await this.usersRepository.findOne({ where: { username } });
-
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const payload: JwtPayload = { username };
-      const accessToken: string = await this.jwtService.sign(payload);
-      return { accessToken };
-    } else {
-      throw new UnauthorizedException('Please check your login credentials');
-    }
-  }
-
-  // async changePassword(_user: changePassword): Promise<any> {
-  //   const { username } = _user;
-  //   const findUser = await this.usersRepository.findOne({
-  //     where: { username },
-  //   });
-  //   if (!findUser) {
-  //     throw Error(`Cant find user: ${username}`);
-  //   }
-  //   const otpDetail = {
-  //     username,
-  //     subject: 'Change Password',
-  //     message: 'Change your password with the code below',
-  //     duration: 1,
-  //     otpgenera: otp,
-  //   };
-
-  //   const createdOTP = await this.usersRepository.create(otpDetail);
-  //   console.log(createdOTP);
-  //   return createdOTP;
-  // }
-
-  //async sendOTP(email: string) {
   async sendOTP(sendgmail: OTPgene) {
     const { username } = sendgmail;
     const userFind = await this.usersRepository.findOne({
       where: { username },
     });
     if (!userFind) {
-      throw Error('User was not created at a previous time');
+      return {
+        messsage: `User was not created at a previous time`,
+      };
     }
     const otp = otpgenerate();
-    await this.mailerService.sendMail({
-      to: username,
-      subject: 'OTP for password reset',
-      text: `Your OTP for password reset is ${otp}`,
-    });
-    // const user = this.usersRepository.create({
-    //   username,
-    //   otp,
-    // });
+    await this.mailerService
+      .sendMail({
+        //Người sẽ được gửi mail đến
+        to: username,
+
+        //Tiêu đề của mail
+        subject: 'OTP for change password',
+
+        //Thông tin cần truyền đạt trong mail
+        text: `Your OTP for password reset is ${otp}`,
+
+        //sử dụng html để custom cho thông tin
+        html: `<p>Your OTP for password reset is <span style="background-color:#FFF8DC; color: red; font-weight:bold; font-style:italic">${otp}</span></p>`,
+      })
+      .then((response) => ({ success: true }))
+      .catch((error) => {
+        return { success: false, error: error };
+      });
+
     userFind.otp = otp;
     await this.usersRepository.save(userFind);
     return {
@@ -164,7 +140,6 @@ export class AuthService {
   }
 
   async updateUserPassword(
-    otprequest: string,
     _user: updatePasswordDTO,
   ): Promise<any> {
     const { username, otp, password } = _user;
@@ -172,31 +147,26 @@ export class AuthService {
       where: { username },
     });
     if (!userFind) {
-      throw Error('Dont exist user');
+      return {
+        messsage: 'Dont exist user',
+      };
     }
-    if (otprequest.localeCompare(otp) === -1) {
-      throw Error('OTP fail this OTP');
+    if (otp.localeCompare(userFind.otp) === -1) {
+      return {
+        messsage: 'OTP is incorrect',
+      };
     }
-
-    // Sử dụng phương thức create của repository để tạo một thực thể User
     // thay vì truyền vào mật khẩu thô, chúng ta sẽ truyền vào mật khẩu được hash
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // const user = this.usersRepository.create({
-    //   password: hashedPassword,
-    // });
     userFind.password = hashedPassword;
     userFind.otp = null;
+
+    // Sử dụng phương thức create của repository để tạo một thực thể User
     await this.usersRepository.save(userFind);
     return {
-      messsage: 'Password was updated by Google Service',
+      messsage: 'Password was updated',
     };
-    // try {
-    // } catch (error) {
-    //   if (error.code === '23505')
-    //     throw new ConflictException('Username already exists');
-    //   else throw new InternalServerErrorException();
-    // }
   }
 }

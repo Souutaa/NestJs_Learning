@@ -10,7 +10,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         '22977821670-37f4a3s4ttt5mftd62vg375bca9n5ktm.apps.googleusercontent.com',
       clientSecret: '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',
       callbackURL: 'http://localhost:4000/auth/google/callback',
-      scope: ['email', 'profile'],
+      scope: ['email', 'profile'], //Là những gì bạn cần sau khi xác thực như là email, profile
     });
   }
 

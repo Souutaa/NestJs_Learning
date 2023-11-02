@@ -6,7 +6,7 @@ import { User } from '../user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
-import { GoogleStrategy } from './google.staregy';
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
   imports: [

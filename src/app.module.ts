@@ -29,12 +29,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
         port: 587,
         secure: false,
         auth: {
-          user: 'trinhq011@gmail.com',
-          pass: 'emgm cmou mnlg rbjn',
+          user: 'trinhq011@gmail.com', //Mail chúng ta mới sử dụng để tạo SMTP
+          pass: 'emgm cmou mnlg rbjn', //Mật khẩu lúc nãy khi ta tạo xong SMTP
         },
       },
       defaults: {
-        from: 'trinhq011@gmail.com',
+        from: 'trinhq011@gmail.com', //Mail chúng ta mới sử dụng để tạo SMTP
       },
     }),
   ],
